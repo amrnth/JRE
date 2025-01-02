@@ -1,0 +1,10 @@
+The following is a transcript of a video. It is in the form of a CSV with the first column being the text(speech), the second column the start time and the third one duration.
+
+This video is 10-15 mins long and we need to extract a 1 min clip out of it. Your task is to find a coherent short story present inside this transcript. 
+
+The constraint is that, you can only return the excerpts from the video to do so. In other words, you'll have to return a smaller csv file which you'll populate by taking out the rows of the given csv file. The story needs to be coherent and you have to return contiguous rows of the CSV. The story should have a start, middle and end. You can optionally leave it at a cliffhanger if you cannot find a story ending at a good note. Also, you can only return the result.csv file.
+
+transcript.csv:
+```
+
+```
