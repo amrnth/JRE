@@ -8,7 +8,6 @@ Steps:
 3. Prompt LLM to find a short story within the whole video and return exact uttered text with subtitles.
 4. Use the timestamps to piece together the short story and then export the video
 5. Upload it to my new channel
-
 6. Better Algo to concatenate clips
 7. Add subtitle texts to the video
 8. Portrait mode - how to focus on the speaker - need computer vision?
@@ -17,5 +16,8 @@ Steps:
 
 
 Immediate tasks:
-1. Do 4k video download
-2. Automate using AI
+1. Do 4k video download - done
+2. Write code to split and combine video and audio
+    1. Install FFMPEG
+    2. Split and combine 
+3. Automate using AI
