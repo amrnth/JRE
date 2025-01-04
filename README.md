@@ -27,4 +27,9 @@ TODO - 4/1
 - [x] Publish to Youtube Channel
 - [x] Add subtitles to video
 - [ ] Download video -> Get Subs -> Process subtitles -> LLM prompt -> csv result -> split, combine
+- [ ] short video aspect ratio
+    - [ ] focus on speaker
+- [ ] Make subtitles bigger, and appear on multiple lines if long
+- [ ] Add effects to subtitles, spread words across the whole timestamp
 - [ ] Make code run on multiple processors
+- [ ] Add zoom-in, zoom-out etc features when transitioning between speakers
