@@ -2,7 +2,7 @@ import ffmpeg
 import os
 from typing import List, Tuple
 import logging
-from merge_intervals import merge_intervals
+from utils import merge_intervals
 import csv
 
 def setup_logging():
@@ -153,23 +153,51 @@ def get_intervals(file_name:str):
     print("timestamps: ", timestamps)
     return timestamps
 
+def offset_csv_file_timestamps(csv_file:str):
+    new_csv_file = csv_file.split(".csv")[0] + "_offsetted.csv"
+    with open(csv_file, "r") as src_csv_file:
+        with open(new_csv_file, "w", newline='', encoding="utf-8") as dest_csv_file:
+
+            reader = csv.DictReader(src_csv_file)
+            field_names = reader.fieldnames
+
+            writer = csv.DictWriter(dest_csv_file, fieldnames=field_names)
+            last_val = 0.0
+            writer.writeheader()
+            for row in reader:
+                text = row[field_names[0]]
+                startMs = float(row[field_names[1]])
+                endMs = float(row[field_names[2]])
+                duration = endMs - startMs
+                writer.writerow(
+                    {
+                        field_names[0]: text,
+                        field_names[1]: last_val,
+                        field_names[2]: duration + last_val
+                    }
+                )
+                last_val += duration
+
+
 def main():
     # File paths
     csv_file = "example_data/reduced_transcript.csv"
-    video_file = "example_data/input_video.mp4"
-    audio_file = "example_data/input_audio.m4a"
+    video_file = "example_vids/input_video.mp4"
+    audio_file = "example_vids/input_audio.m4a"
     
     
     # Time intervals in milliseconds
     intervals = merge_intervals(get_intervals(csv_file))
     print("Intervals: ", intervals)
 
-    output_video = "example_data/output.mp4"
-    output_audio = "example_data/output.m4a"
-    final_output = "example_data/final_output.mp4"
+    output_video = "example_vids/output.mp4"
+    output_audio = "example_vids/output.m4a"
+    final_output = "example_vids/final_output.mp4"
     
     process_media_files(video_file, audio_file, intervals, output_video, output_audio)
     combine_video_audio(output_video, output_audio, final_output, logger)
 
+
 if __name__ == "__main__":
-    main()
+    # main()
+    offset_csv_file_timestamps("example_data/reduced_transcript.csv")
