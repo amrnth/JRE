@@ -21,3 +21,9 @@ Immediate tasks:
     1. Install FFMPEG
     2. Split and combine 
 3. Automate using AI
+
+TODO - 4/1
+- [x] Split and combine video and audio
+- [x] Publish to Youtube Channel
+- [ ] Add subtitles to video
+- [ ] Download video -> Get Subs -> Process subtitles -> LLM prompt -> csv result -> split, combine
