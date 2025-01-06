@@ -1,10 +1,10 @@
+TASK:
+Extract a ~1 minute coherent story segment by selecting contiguous rows from the input CSV.
+
 INPUT FORMAT:
 - CSV file with 3 columns: text (speech content), start_time, duration
 - File represents subtitles from a 10-15 minute video
 - CSV structure: text,start_time,duration
-
-TASK:
-Extract a ~1 minute coherent story segment by selecting contiguous rows from the input CSV.
 
 REQUIREMENTS:
 1. Story Structure:
@@ -19,13 +19,13 @@ REQUIREMENTS:
    - Must maintain row order
    - Total duration ≈ 60 seconds
 
-INPUT:
-subtitles.csv:\n'''+ subtitles_csv+'''
-
 SELECTION CRITERIA:
 1. Story completeness
 2. Narrative coherence
 3. Natural dialogue flow
 4. Duration limits
+
+INPUT:
+subtitles.csv:{subtitles_csv}
 
 Output:

@@ -13,7 +13,6 @@ class Schema:
   csv_file_contents: str 
   
 def generate_reduced_subtitles(full_subtitles_csv: str):
-  # Create the model
   generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -38,11 +37,8 @@ def generate_reduced_subtitles(full_subtitles_csv: str):
       for line in file.readlines():
           subtitles_csv = subtitles_csv + line
 
-
-  hydrated_prompt = '''INPUT FORMAT:
-  - CSV file with 3 columns: text (speech content), start_time, duration
-  - File represents subtitles from a 10-15 minute video
-  - CSV structure: text,start_time,duration
+  hydrated_prompt = '''
+  You are an experienced content creator and storyteller. You have to perform the following job:
 
   TASK:
   Extract a ~1 minute coherent story segment by selecting contiguous rows from the input CSV.
@@ -54,20 +50,25 @@ def generate_reduced_subtitles(full_subtitles_csv: str):
     - Should be ~1 minute in total duration
     - Must use contiguous rows only
 
+  INPUT FORMAT:
+  - CSV file with 3 columns: text (speech content), start_time, duration
+  - File represents subtitles from a 10-15 minute video
+  - CSV structure: text,start_time,duration
+
   2. Constraints:
     - Can only use existing text (no modifications)
     - Must preserve original timestamps
     - Must maintain row order
     - Total duration ≈ 60 seconds
 
-  INPUT:
-  subtitles.csv:\n'''+ subtitles_csv+'''
-
   SELECTION CRITERIA:
   1. Story completeness
   2. Narrative coherence
   3. Natural dialogue flow
   4. Duration limits
+
+  INPUT:
+  subtitles.csv:\n'''+ subtitles_csv+'''
 
   Output:'''
 
