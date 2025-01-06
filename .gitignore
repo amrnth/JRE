@@ -1,5 +1,11 @@
 venv/*
 venv
 
+example_data
+example_data/*
 example_vids/*
 example_vids
+processed_data
+processed_data/*
+
+.env

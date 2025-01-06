@@ -1,3 +1,5 @@
+import cv2
+
 # Combine overlapping or adjacent intervals
 def merge_intervals(intervals):
     if not intervals:
@@ -15,8 +17,6 @@ def merge_intervals(intervals):
         else:
             merged.append(current)
     return merged
-
-import cv2
 
 def count_frames(video_path):
     cap = cv2.VideoCapture(video_path)
