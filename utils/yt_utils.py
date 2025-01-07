@@ -24,13 +24,12 @@ def progress_hook(d):
         print('\nDownload finished, now converting...')
 
 
-def download_youtube_video(video_slug: str) -> None:
-    # Create output directory
-    output_dir = os.path.join(os.getcwd(), ROOT_RESULTS_FOLDER, video_slug)
-    os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, 'source_video.%(ext)s')
-    print(output_dir)
-    # Configure yt-dlp options
+async def download_youtube_video(path_prefix:str, video_slug: str) -> None:
+    output_file = os.path.join(path_prefix, video_slug, 'source_video.mp4')
+
+    if(os.path.exists(output_file)):
+        return output_file
+
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',  # Highest quality with audio
         'outtmpl': output_file,
@@ -41,21 +40,22 @@ def download_youtube_video(video_slug: str) -> None:
         'ignoreerrors': False,
     }
     
-    # Download the video
     url = f'https://www.youtube.com/watch?v={video_slug}'
     try:
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
-            print(f"\nDownload completed successfully! Video saved in: {output_dir}")
-        return output_dir
+            print(f"\nDownload completed successfully! Video saved at: {output_file}")
+        return output_file
     except Exception as e:
         print(f"Error downloading video: {str(e)}")
 
-def download_subtitles(video_slug):
+async def download_subtitles(path_prefix:str, video_slug:str):
+    output_file = os.path.join(path_prefix, video_slug, "subtitles.csv")
+
+    if(os.path.exists(output_file)):
+        return output_file
+
     transcript = YouTubeTranscriptApi.get_transcript(video_slug)
-
-    output_file = os.path.join(os.getcwd(), ROOT_RESULTS_FOLDER, video_slug, "subtitles.txt")
-
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write("text,startMs,endMs\n")
         for track in transcript:
@@ -65,3 +65,16 @@ def download_subtitles(video_slug):
             f.write(f"{track['text']},{startMs},{endMs}\n")
     
     return output_file
+
+
+def get_slug_from_full_url(full_url):
+   """
+   Given a YT URL like https://www.youtube.com/watch?v=rYb4JNGShOM,
+   
+   return the queryParam 'v'
+   """
+   from urllib.parse import urlparse, parse_qs
+   
+   parsed_url = urlparse(full_url)
+   params = parse_qs(parsed_url.query)
+   return params['v'][0]

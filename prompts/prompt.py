@@ -13,6 +13,12 @@ class Schema:
   csv_file_contents: str 
   
 def generate_reduced_subtitles(full_subtitles_csv: str):
+  destination_folder = full_subtitles_csv.split("subtitles.csv")[0]
+  output_file = destination_folder + "subtitles_reduced.csv"
+
+  if(os.path.exists(output_file)):
+    return output_file
+
   generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -77,9 +83,6 @@ def generate_reduced_subtitles(full_subtitles_csv: str):
 
   csv_file_contents = json.loads(response_dict["csv_file_contents"])
 
-  destination_folder = full_subtitles_csv.split("subtitles.csv")[0]
-  output_file = destination_folder + "subtitles_reduced.csv"
-
   with open(output_file, "w", newline="") as file:
     writer = csv.DictWriter(file, fieldnames=["text","startMs","endMs"])
     writer.writeheader()
@@ -90,5 +93,7 @@ def generate_reduced_subtitles(full_subtitles_csv: str):
           "startMs": row["startMs"],
           "endMs":row["endMs"]
        })
-
-generate_reduced_subtitles("D:/Projects/JREFan/processed_data/4Gw-HQvo9jY/subtitles.csv")
+    
+    file.close()
+    
+  return output_file

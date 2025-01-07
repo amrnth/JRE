@@ -15,19 +15,10 @@ class SubtitleEntry:
 
 class Subtitles:
     def __init__(self, subtitle_file: str):
-        """
-        Initialize the Subtitles class with a CSV file containing subtitle data.
-        
-        Args:
-            subtitle_file (str): Path to the CSV file with columns: text, startMs, endMs
-        """
         self.entries: List[SubtitleEntry] = []
         self._load_subtitles(subtitle_file)
     
     def _load_subtitles(self, subtitle_file: str) -> None:
-        """
-        Load subtitles from the CSV file into memory.
-        """
         with open(subtitle_file, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
@@ -39,46 +30,23 @@ class Subtitles:
                 self.entries.append(entry)
     
     def get_subtitle_at_time(self, timestamp_ms: int) -> Optional[str]:
-        """
-        Get the subtitle text that should be displayed at a given timestamp.
-        
-        Args:
-            timestamp_ms (int): Timestamp in milliseconds
-            
-        Returns:
-            Optional[str]: Subtitle text if one should be displayed, None otherwise
-        """
         for entry in self.entries:
             if entry.start_ms <= timestamp_ms <= entry.end_ms:
                 return entry.text
         return None
 
 class VideoEditor:
-    def __init__(self, video_path: str, output_path: str, subtitles: Subtitles):
-        """
-        Initialize the VideoEditor with input video and subtitles.
-        
-        Args:
-            video_path (str): Path to the input video file
-            output_path (str): Path where the output video will be saved
-            subtitles (Subtitles): Subtitles object containing the subtitle entries
-        """
+    def __init__(self, video_root_folder:str, video_path: str, output_path: str, subtitles: Subtitles):
         self.video_path = video_path
         self.output_path = output_path
         self.subtitles = subtitles
-        self.temp_dir = "temp_frames"
+        self.temp_dir = video_root_folder+"/temp_frames"
         # self.font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
         
         # Create temp directory if it doesn't exist
         os.makedirs(self.temp_dir, exist_ok=True)
     
     def _extract_frames(self) -> tuple[int, float]:
-        """
-        Extract frames from the video and return the frame count and FPS.
-        
-        Returns:
-            tuple[int, float]: (frame_count, fps)
-        """
         cap = cv2.VideoCapture(self.video_path)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = cap.get(cv2.CAP_PROP_FPS)
@@ -111,13 +79,6 @@ class VideoEditor:
         return frame_count, fps
     
     def _add_subtitle_to_frame(self, image: Image.Image, text: str) -> None:
-        """
-        Add large subtitle text to a frame using system default font.
-        
-        Args:
-            image (Image.Image): PIL Image object of the frame
-            text (str): Subtitle text to add
-        """
         draw = ImageDraw.Draw(image)
         
         # Set a large font size
@@ -142,19 +103,16 @@ class VideoEditor:
 
 
     def _combine_frames(self, frame_count: int, fps: float) -> None:
-        """
-        Combine the processed frames back into a video using ffmpeg.
-        
-        Args:
-            frame_count (int): Total number of frames
-            fps (float): Frames per second of the original video
-        """
         ffmpeg_cmd = [
             'ffmpeg',
             '-y',  # Overwrite output file if it exists
             '-framerate', str(fps),
             '-i', f'{self.temp_dir}/frame_%06d.png',
+            '-i', self.video_path,  # Add original video as second input
             '-c:v', 'libx264',
+            '-c:a', 'copy',         # Copy audio without re-encoding
+            '-map', '0:v:0',        # Use video from first input (frames)
+            '-map', '1:a:0',        # Use audio from second input (original video)
             '-pix_fmt', 'yuv420p',
             '-preset', 'medium',
             '-crf', '23',
@@ -189,15 +147,3 @@ class VideoEditor:
             print(f"Error processing video: {str(e)}")
             self._cleanup()
             raise
-
-def main():
-    subtitle_file = "example_data/reduced_transcript_offsetted.csv"
-    input_video = "example_vids/final_output.mp4"
-    output_video = "output_with_subs2.mp4"
-    
-    subtitles = Subtitles(subtitle_file)
-    editor = VideoEditor(input_video, output_video, subtitles)
-    editor.process_video()
-
-if __name__ == "__main__":
-    main()

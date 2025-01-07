@@ -2,7 +2,7 @@ import ffmpeg
 import os
 from typing import List, Tuple
 import logging
-from utils import merge_intervals
+from utils.utils import merge_intervals
 import csv
 
 def setup_logging():
@@ -71,6 +71,8 @@ def merge_media_files(file_list: List[str], output_file: str, logger: logging.Lo
         stream = ffmpeg.output(stream, output_file, c='copy')
         ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
         logger.info(f"Successfully merged files into: {output_file}")
+
+        return output_file
         
     except ffmpeg.Error as e:
         logger.error(f"Error merging files: {str(e)}")
@@ -80,11 +82,13 @@ def merge_media_files(file_list: List[str], output_file: str, logger: logging.Lo
         if os.path.exists(concat_file):
             os.remove(concat_file)
 
-def process_media_files(video_file: str, audio_file: str, intervals: List[Tuple[int, int]], 
-                       output_video: str, output_audio: str):
+def process_media_files(video_file: str, intervals: List[Tuple[int, int]], 
+                       output_video: str):
     """
     Main function to process video and audio files
     """
+    if(os.path.exists(output_video)):
+        return output_video
     
     try:
         # Split video
@@ -92,38 +96,30 @@ def process_media_files(video_file: str, audio_file: str, intervals: List[Tuple[
         video_segments = split_media(video_file, "temp_video", intervals, logger)
         print("Split videos - \n", video_segments)
         
-        # Split audio
-        logger.info("Processing audio segments...")
-        audio_segments = split_media(audio_file, "temp_audio", intervals, logger)
-        
         # Merge video segments
         logger.info("Merging video segments...")
         merge_media_files(video_segments, output_video, logger)
-        
-        # Merge audio segments
-        logger.info("Merging audio segments...")
-        merge_media_files(audio_segments, output_audio, logger)
-        
+
         # Clean up temporary files
-        for file in video_segments + audio_segments:
+        for file in video_segments:
             os.remove(file)
             logger.info(f"Cleaned up temporary file: {file}")
+        
+        return output_video
             
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
         raise
 
-def combine_video_audio(video_file: str, audio_file: str, output_file: str, logger: logging.Logger):
+def combine_video_audio(video_file: str, output_file: str, logger: logging.Logger):
     """
     Combine video and audio files into a single media file
     """
     try:
         input_video = ffmpeg.input(video_file)
-        input_audio = ffmpeg.input(audio_file)
         
         stream = ffmpeg.output(
             input_video,
-            input_audio,
             output_file,
             vcodec='copy',
             acodec='copy'
@@ -131,16 +127,9 @@ def combine_video_audio(video_file: str, audio_file: str, output_file: str, logg
         ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
         logger.info(f"Successfully combined video and audio into: {output_file}")
 
-        # Clean up intermediate merged files
-        # os.remove(output_video)
-        # os.remove(output_audio)
-        # logger.info("Cleaned up intermediate merged files")
-        
     except ffmpeg.Error as e:
         logger.error(f"Error combining video and audio: {str(e)}")
         raise
-
-
 
 def get_intervals(file_name:str):
     timestamps = []
@@ -177,27 +166,19 @@ def offset_csv_file_timestamps(csv_file:str):
                     }
                 )
                 last_val += duration
+            dest_csv_file.close()
+        src_csv_file.close()
+    
+    return new_csv_file
 
 
 def main():
-    # File paths
-    csv_file = "example_data/reduced_transcript.csv"
-    video_file = "example_vids/input_video.mp4"
-    audio_file = "example_vids/input_audio.m4a"
+    csv_file = "processed_data/4Gw-HQvo9jY/subtitles_reduced.csv"
+    video_file = "processed_data/4Gw-HQvo9jY/source_video.mp4"
+    final_output = "processed_data/4Gw-HQvo9jY/final_output.mp4"
     
-    
-    # Time intervals in milliseconds
     intervals = merge_intervals(get_intervals(csv_file))
-    print("Intervals: ", intervals)
-
-    output_video = "example_vids/output.mp4"
-    output_audio = "example_vids/output.m4a"
-    final_output = "example_vids/final_output.mp4"
     
-    process_media_files(video_file, audio_file, intervals, output_video, output_audio)
-    combine_video_audio(output_video, output_audio, final_output, logger)
-
-
-if __name__ == "__main__":
-    # main()
-    offset_csv_file_timestamps("example_data/reduced_transcript.csv")
+    process_media_files(video_file, intervals, final_output)
+    offsetted_subtitles = offset_csv_file_timestamps("processed_data/4Gw-HQvo9jY/subtitles_reduced.csv")
+    
