@@ -144,41 +144,43 @@ def get_intervals(file_name:str):
 
 def offset_csv_file_timestamps(csv_file:str):
     new_csv_file = csv_file.split(".csv")[0] + "_offsetted.csv"
-    with open(csv_file, "r") as src_csv_file:
-        with open(new_csv_file, "w", newline='', encoding="utf-8") as dest_csv_file:
-
+    with open(new_csv_file, "w", newline='', encoding="utf-8") as dest_csv_file:
+        with open(csv_file, "r") as src_csv_file:
             reader = csv.DictReader(src_csv_file)
             field_names = reader.fieldnames
+            
+            rows = []
+            for r in reader:
+                rows.append(r)
+                r.update({
+                    "startMs": int(r["startMs"]),
+                    "endMs": int(r["endMs"])
+                })
+            rows.sort(key=lambda x: (x["startMs"], x["endMs"]))
+
+            diff = rows[0]["startMs"]
+
+            rows[0]["startMs"] -= diff
+            rows[0]["endMs"] -= diff
+
+            for i in range(1, len(rows)):
+                if(rows[i]["startMs"] <= diff + rows[i-1]["endMs"]):
+                    rows[i]["startMs"] -= diff
+                    rows[i]["endMs"] -= diff
+                else:
+                    temp = rows[i]["endMs"] - rows[i]["startMs"]
+                    temp2 = rows[i]["startMs"] - rows[i-1]["endMs"]
+
+                    rows[i]["startMs"] = rows[i-1]["endMs"]
+                    rows[i]["endMs"] = rows[i]["startMs"] + temp
+
+                    diff = temp2
 
             writer = csv.DictWriter(dest_csv_file, fieldnames=field_names)
-            last_val = 0.0
             writer.writeheader()
-            for row in reader:
-                text = row[field_names[0]]
-                startMs = float(row[field_names[1]])
-                endMs = float(row[field_names[2]])
-                duration = endMs - startMs
-                writer.writerow(
-                    {
-                        field_names[0]: text,
-                        field_names[1]: last_val,
-                        field_names[2]: duration + last_val
-                    }
-                )
-                last_val += duration
+            for r in rows:
+                writer.writerow(r)
             dest_csv_file.close()
         src_csv_file.close()
     
     return new_csv_file
-
-
-def main():
-    csv_file = "processed_data/4Gw-HQvo9jY/subtitles_reduced.csv"
-    video_file = "processed_data/4Gw-HQvo9jY/source_video.mp4"
-    final_output = "processed_data/4Gw-HQvo9jY/final_output.mp4"
-    
-    intervals = merge_intervals(get_intervals(csv_file))
-    
-    process_media_files(video_file, intervals, final_output)
-    offsetted_subtitles = offset_csv_file_timestamps("processed_data/4Gw-HQvo9jY/subtitles_reduced.csv")
-    

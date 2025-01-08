@@ -6,6 +6,8 @@ from typing import List, Optional
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import multiprocessing as mp
+from functools import partial
 
 @dataclass
 class SubtitleEntry:
@@ -29,11 +31,14 @@ class Subtitles:
                 )
                 self.entries.append(entry)
     
-    def get_subtitle_at_time(self, timestamp_ms: int) -> Optional[str]:
+    def get_subtitles_at_time(self, timestamp_ms: int) -> Optional[str]:
+        entries = []
         for entry in self.entries:
             if entry.start_ms <= timestamp_ms <= entry.end_ms:
-                return entry.text
-        return None
+                entries.append(entry)
+        
+        return entries
+
 
 class VideoEditor:
     def __init__(self, video_root_folder:str, video_path: str, output_path: str, subtitles: Subtitles):
@@ -46,60 +51,84 @@ class VideoEditor:
         # Create temp directory if it doesn't exist
         os.makedirs(self.temp_dir, exist_ok=True)
     
+    def process_frame(self, frame_data, temp_dir, subtitles):
+        frame_number, timestamp_ms, frame = frame_data
+        
+        # Convert frame from BGR to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(frame_rgb)
+        
+        # Get subtitle for this timestamp
+        subtitle_texts = subtitles.get_subtitles_at_time(timestamp_ms)
+        
+        self._add_subtitles_to_frame(pil_image, subtitle_texts)
+        # Save the frame
+        pil_image.save(f"{temp_dir}/frame_{frame_number:06d}.png")
+
     def _extract_frames(self) -> tuple[int, float]:
         cap = cv2.VideoCapture(self.video_path)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         
-        frame_number = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-                
-            # Convert frame from BGR to RGB
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            pil_image = Image.fromarray(frame_rgb)
-            
-            # Calculate timestamp for this frame
-            timestamp_ms = int((frame_number / fps) * 1000)
-            
-            # Get subtitle for this timestamp
-            subtitle_text = self.subtitles.get_subtitle_at_time(timestamp_ms)
-            
-            if subtitle_text:
-                # Add subtitle to the frame
-                self._add_subtitle_to_frame(pil_image, subtitle_text)
-            
-            # Save the frame
-            pil_image.save(f"{self.temp_dir}/frame_{frame_number:06d}.png")
-            frame_number += 1
+        # Create frame data generator
+        def frame_generator():
+            frame_number = 0
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                timestamp_ms = int((frame_number / fps) * 1000)
+                yield (frame_number, timestamp_ms, frame)
+                frame_number += 1
+
+        # Use all available CPU cores minus 1
+        num_processes = max(1, mp.cpu_count() - 1)
+        
+        with mp.Pool(num_processes) as pool:
+            process_func = partial(self.process_frame, temp_dir=self.temp_dir, subtitles=self.subtitles)
+            # Process frames in parallel
+            list(pool.imap(process_func, frame_generator()))
         
         cap.release()
         return frame_count, fps
     
-    def _add_subtitle_to_frame(self, image: Image.Image, text: str) -> None:
+    def _add_subtitles_to_frame(self, image: Image.Image, texts: list[SubtitleEntry]) -> None:
+        if not texts:
+            return
+            
         draw = ImageDraw.Draw(image)
         
         # Set a large font size
         font = ImageFont.load_default()
-        font_size = 48  # Increase this value for larger text
+        font_size = 64  # Increase this value for larger text
         font = font.font_variant(size=font_size)
         
-        # Calculate text size and position
         img_w, img_h = image.size
-        text_bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = text_bbox[2] - text_bbox[0]
-        text_height = text_bbox[3] - text_bbox[1]
+        line_spacing = 15  # Space between lines
         
-        # Position text at bottom center with padding
-        x = (img_w - text_width) // 2
-        y = img_h - text_height - 80
+        # Calculate total height needed for all texts
+        total_height = 0
+        text_sizes = []
+        for text in texts:
+            bbox = draw.textbbox((0, 0), text.text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            text_sizes.append((text_width, text_height))
+            total_height += text_height + line_spacing
         
-        # Draw text shadow for better visibility
-        shadow_offset = 0
-        draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill="black", stroke_width=10)
-        draw.text((x, y), text, font=font, fill="white", stroke_width=1)
+        # Start position for the first line
+        current_y = img_h - total_height - 40
+        
+        # Draw each line of text
+        for text, (text_width, text_height) in zip(texts, text_sizes):
+            x = (img_w - text_width) // 2
+            
+            # Draw text shadow and main text
+            shadow_offset = 2
+            draw.text((x + shadow_offset, current_y + shadow_offset), text.text, font=font, fill="black", stroke_width=3)
+            draw.text((x, current_y), text.text, font=font, fill="white", stroke_width=1)
+            
+            current_y += text_height + line_spacing
 
 
     def _combine_frames(self, frame_count: int, fps: float) -> None:
@@ -131,6 +160,8 @@ class VideoEditor:
         """
         Process the video by extracting frames, adding subtitles, and combining frames.
         """
+        if(os.path.exists(self.output_path)):
+            return self.output_path
         try:
             print("Extracting and processing frames...")
             frame_count, fps = self._extract_frames()
@@ -142,6 +173,8 @@ class VideoEditor:
             self._cleanup()
             
             print(f"Video processing complete. Output saved to: {self.output_path}")
+
+            return self.output_path
         
         except Exception as e:
             print(f"Error processing video: {str(e)}")

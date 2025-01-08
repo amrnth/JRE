@@ -6,7 +6,7 @@ def merge_intervals(intervals):
         return []
     
     # Sort intervals by start time
-    intervals.sort(key=lambda x: x[0])
+    intervals.sort(key=lambda x: (x[0], x[1]))
     merged = [intervals[0]]
 
     for current in intervals[1:]:
