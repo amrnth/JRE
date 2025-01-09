@@ -1,13 +1,16 @@
 import csv
+import random
 import subprocess
 import os
 from dataclasses import dataclass
 from typing import List, Optional
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import multiprocessing as mp
 from functools import partial
+
+from test import check_free_cores
 
 @dataclass
 class SubtitleEntry:
@@ -41,29 +44,20 @@ class Subtitles:
 
 
 class VideoEditor:
-    def __init__(self, video_root_folder:str, video_path: str, output_path: str, subtitles: Subtitles):
+    def __init__(self, video_root_folder:str, video_path: str, output_path: str, subtitles: Subtitles, font_path: str = "data_dump/fonts/komika-axis/KOMIKAX_.ttf", font_size:int = 42):
         self.video_path = video_path
         self.output_path = output_path
         self.subtitles = subtitles
         self.temp_dir = video_root_folder+"/temp_frames"
-        # self.font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
+        self.font = ImageFont.truetype(font_path, font_size)
+        self.shadow_color = (128, 128, 128)
+        self.blur_radius = 30
+        self.brightness_factor = 0.4
+        self.shadow_offset = (5, 5)
+        self.explosion_factor = 2
         
         # Create temp directory if it doesn't exist
         os.makedirs(self.temp_dir, exist_ok=True)
-    
-    def process_frame(self, frame_data, temp_dir, subtitles):
-        frame_number, timestamp_ms, frame = frame_data
-        
-        # Convert frame from BGR to RGB
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(frame_rgb)
-        
-        # Get subtitle for this timestamp
-        subtitle_texts = subtitles.get_subtitles_at_time(timestamp_ms)
-        
-        self._add_subtitles_to_frame(pil_image, subtitle_texts)
-        # Save the frame
-        pil_image.save(f"{temp_dir}/frame_{frame_number:06d}.png")
 
     def _extract_frames(self) -> tuple[int, float]:
         cap = cv2.VideoCapture(self.video_path)
@@ -92,43 +86,78 @@ class VideoEditor:
         cap.release()
         return frame_count, fps
     
-    def _add_subtitles_to_frame(self, image: Image.Image, texts: list[SubtitleEntry]) -> None:
-        if not texts:
-            return
+    def process_frame(self, frame_data, temp_dir, subtitles):
+        frame_number, timestamp_ms, frame = frame_data
+
+        if random.random()>0.9:
+            check_free_cores()
+        
+        # Convert frame from BGR to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(frame_rgb)
+        
+        # Get subtitle for this timestamp
+        subtitle_texts = subtitles.get_subtitles_at_time(timestamp_ms)
+        
+        self.resize_and_add_text_to_frame(pil_image, subtitle_texts, f"{temp_dir}/frame_{frame_number:06d}.png")
+    
+    def resize_and_add_text_to_frame(self, image: Image.Image, texts: list[SubtitleEntry], save_frame_dir: str) -> None:
+        original_width, original_height = image.size
+
+        img = image.copy()
+
+        image = image.filter(ImageFilter.GaussianBlur(radius=self.blur_radius))
+        new_width_exploded = int(self.explosion_factor*1920*1920/1080)
+        new_height_exploded = 1920 * self.explosion_factor
+        image = image.resize((new_width_exploded, new_height_exploded))
+        image = image.crop((new_width_exploded//2 - 1080//2, 0, new_width_exploded//2 + 1080//2, 1920))
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(self.brightness_factor)
+
+        # Resize original frame to fit within target width
+        scale_factor = 1080 / original_width
+        new_width = 1080
+        new_height = int(original_height * scale_factor)
+        resized_img = img.resize((new_width, new_height), Image.LANCZOS)
+
+        paste_y = (1920 - new_height) // 2
+
+        image.paste(resized_img, (0, paste_y))
+
+        image.save("testtest.png")
             
         draw = ImageDraw.Draw(image)
         
-        # Set a large font size
-        font = ImageFont.load_default()
-        font_size = 64  # Increase this value for larger text
-        font = font.font_variant(size=font_size)
-        
-        img_w, img_h = image.size
+        resized_img_w = 1080
+        resized_img_h = new_height
         line_spacing = 15  # Space between lines
         
         # Calculate total height needed for all texts
         total_height = 0
         text_sizes = []
+        shadow_offset = self.shadow_offset
         for text in texts:
-            bbox = draw.textbbox((0, 0), text.text, font=font)
+            bbox = draw.textbbox((0, 0), text.text, font=self.font)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             text_sizes.append((text_width, text_height))
             total_height += text_height + line_spacing
         
         # Start position for the first line
-        current_y = img_h - total_height - 40
+        offset = 15
+        current_y = image.size[1]//2 + resized_img_h//2 + offset
         
         # Draw each line of text
         for text, (text_width, text_height) in zip(texts, text_sizes):
-            x = (img_w - text_width) // 2
-            
+            x = (resized_img_w - text_width) // 2
             # Draw text shadow and main text
-            shadow_offset = 2
-            draw.text((x + shadow_offset, current_y + shadow_offset), text.text, font=font, fill="black", stroke_width=3)
-            draw.text((x, current_y), text.text, font=font, fill="white", stroke_width=1)
+            draw.text((x, current_y ), text.text, font=self.font, fill="black", stroke_width=4)
+            draw.text((x, current_y), text.text, font=self.font, fill="white", stroke_width=1)
             
             current_y += text_height + line_spacing
+        
+        image.save(save_frame_dir)
 
 
     def _combine_frames(self, frame_count: int, fps: float) -> None:

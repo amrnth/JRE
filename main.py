@@ -1,5 +1,5 @@
 import asyncio
-from add_subs import Subtitles, VideoEditor
+from make_shorts import Subtitles, VideoEditor
 from clip_new import get_intervals, offset_csv_file_timestamps, process_media_files
 from prompts.prompt import generate_reduced_subtitles
 from utils.utils import merge_intervals
@@ -42,9 +42,9 @@ if __name__ == "__main__":
         # "https://www.youtube.com/watch?v=FozCkl1xj-w", 
         # "https://www.youtube.com/watch?v=CO5E-VoR3sA", 
         # "https://www.youtube.com/watch?v=kJcpTSNWXdQ", 
-        "https://www.youtube.com/watch?v=tSoe5v5Qlec", 
-        "https://www.youtube.com/watch?v=bklrNzdtU3Q", 
+        # "https://www.youtube.com/watch?v=tSoe5v5Qlec", 
+        # "https://www.youtube.com/watch?v=bklrNzdtU3Q", 
         # "https://www.youtube.com/watch?v=0cM690CKArQ", 
-        # "https://www.youtube.com/watch?v=M_jPqv3NvUI"
+        "https://www.youtube.com/watch?v=M_jPqv3NvUI",
         ]
     asyncio.run(perform_work(yt_video_urls))

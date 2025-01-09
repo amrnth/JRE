@@ -111,26 +111,6 @@ def process_media_files(video_file: str, intervals: List[Tuple[int, int]],
         logger.error(f"An error occurred: {str(e)}")
         raise
 
-def combine_video_audio(video_file: str, output_file: str, logger: logging.Logger):
-    """
-    Combine video and audio files into a single media file
-    """
-    try:
-        input_video = ffmpeg.input(video_file)
-        
-        stream = ffmpeg.output(
-            input_video,
-            output_file,
-            vcodec='copy',
-            acodec='copy'
-        )
-        ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
-        logger.info(f"Successfully combined video and audio into: {output_file}")
-
-    except ffmpeg.Error as e:
-        logger.error(f"Error combining video and audio: {str(e)}")
-        raise
-
 def get_intervals(file_name:str):
     timestamps = []
     with open(file_name, newline='') as csvfile:

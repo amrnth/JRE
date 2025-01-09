@@ -9,3 +9,11 @@ processed_data
 processed_data/*
 
 .env
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+data_dump
+data_dump/*
