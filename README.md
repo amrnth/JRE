@@ -31,7 +31,10 @@ TODO - 4/1
 - [x] handle the case of combining audio after merging frames
 - [ ] short video aspect ratio
     - [ ] focus on speaker
-- [ ] Make subtitles bigger, and appear on multiple lines if long
+- [ ] make prompts better, currently stories aren't that great.
+- [ ] modify prompt to return title description of the video. save original video metadata
+- [ ] extract subtitles with word-by-word timestamp, and use animation.
+- [x] Make subtitles bigger, and appear on multiple lines if long
 - [ ] Add effects to subtitles, spread words across the whole timestamp
-- [ ] Make code run on multiple processors
+- [x] Make code run on multiple processors - done(beautiful work!)
 - [ ] Add zoom-in, zoom-out etc features when transitioning between speakers
