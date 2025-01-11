@@ -1,5 +1,4 @@
 import csv
-import random
 import subprocess
 import os
 from dataclasses import dataclass
@@ -89,9 +88,7 @@ class VideoEditor:
     def process_frame(self, frame_data, temp_dir, subtitles):
         frame_number, timestamp_ms, frame = frame_data
 
-        if random.random()>0.9:
-            check_free_cores()
-        
+
         # Convert frame from BGR to RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(frame_rgb)

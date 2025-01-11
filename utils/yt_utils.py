@@ -1,8 +1,8 @@
+import asyncio
+import csv
 import os
 from yt_dlp import YoutubeDL
 from youtube_transcript_api import YouTubeTranscriptApi
-
-from constants import ROOT_RESULTS_FOLDER
 
 def progress_hook(d):
     """
@@ -78,3 +78,52 @@ def get_slug_from_full_url(full_url):
    parsed_url = urlparse(full_url)
    params = parse_qs(parsed_url.query)
    return params['v'][0]
+
+
+def get_video_info(url):
+    # Configure yt-dlp options
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'extract_flat': True
+    }
+    
+    # Create YoutubeDL object
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            # Extract video information
+            info = ydl.extract_info(url, download=False)
+            
+            # Create a dictionary with the desired information
+            video_details = {
+                'title': info.get('title'),
+                'description': info.get('description'),
+                'duration': info.get('duration'),  # in seconds
+                'view_count': info.get('view_count'),
+                'like_count': info.get('like_count'),
+                'upload_date': info.get('upload_date'),
+                'channel': info.get('uploader'),
+                'channel_url': info.get('uploader_url')
+            }
+            
+            return video_details
+            
+        except Exception as e:
+            print(e)
+            return None
+
+def download_save_video_info(urls: list[str]):
+    csv_store = "processed_data/metadata_temp/data.csv"
+
+    video_details = []
+    for url in urls:
+        video_details.append(get_video_info(url))
+    
+    with open(csv_store, "w", encoding="utf-8") as file:
+        csv_writer = csv.DictWriter(file,video_details[0].keys())
+        csv_writer.writeheader()
+        for vd in video_details:
+            if not vd:
+                continue
+            csv_writer.writerow(vd)
+    

@@ -3,7 +3,7 @@ from make_shorts import Subtitles, VideoEditor
 from clip_new import get_intervals, offset_csv_file_timestamps, process_media_files
 from prompts.prompt import generate_reduced_subtitles
 from utils.utils import merge_intervals
-from utils.yt_utils import download_subtitles, download_youtube_video, get_slug_from_full_url
+from utils.yt_utils import download_save_video_info, download_subtitles, download_youtube_video, get_slug_from_full_url
 
 
 async def perform_work(video_urls: list[str]):
@@ -36,15 +36,6 @@ async def perform_work(video_urls: list[str]):
             continue
 if __name__ == "__main__":
     yt_video_urls = [
-        # "https://www.youtube.com/watch?v=37KieyXOYG4", 
-        # "https://www.youtube.com/watch?v=Cn1MugPalaA", 
-        # "https://www.youtube.com/watch?v=Cn1MugPalaA", 
-        # "https://www.youtube.com/watch?v=FozCkl1xj-w", 
-        # "https://www.youtube.com/watch?v=CO5E-VoR3sA", 
-        # "https://www.youtube.com/watch?v=kJcpTSNWXdQ", 
-        # "https://www.youtube.com/watch?v=tSoe5v5Qlec", 
-        # "https://www.youtube.com/watch?v=bklrNzdtU3Q", 
-        # "https://www.youtube.com/watch?v=0cM690CKArQ", 
-        "https://www.youtube.com/watch?v=M_jPqv3NvUI",
         ]
     asyncio.run(perform_work(yt_video_urls))
+    # download_save_video_info(yt_video_urls)
