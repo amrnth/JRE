@@ -17,3 +17,9 @@ __pycache__/
 
 data_dump
 data_dump/*
+
+fonts/*
+fonts
+
+trash
+trash/*
