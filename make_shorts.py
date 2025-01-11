@@ -43,7 +43,7 @@ class Subtitles:
 
 
 class VideoEditor:
-    def __init__(self, video_root_folder:str, video_path: str, output_path: str, subtitles: Subtitles, font_path: str = "data_dump/fonts/komika-axis/KOMIKAX_.ttf", font_size:int = 42):
+    def __init__(self, video_root_folder:str, video_path: str, output_path: str, subtitles: Subtitles, font_path: str = "fonts/komika-axis/KOMIKAX_.ttf", font_size:int = 42):
         self.video_path = video_path
         self.output_path = output_path
         self.subtitles = subtitles

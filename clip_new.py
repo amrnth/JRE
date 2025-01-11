@@ -2,8 +2,7 @@ import ffmpeg
 import os
 from typing import List, Tuple
 import logging
-from utils.utils import merge_intervals
-import csv
+from csv_utils import CSVUtils
 
 def setup_logging():
     """Configure logging for the script"""
@@ -16,23 +15,10 @@ def setup_logging():
 logger = setup_logging()
 
 
-def split_media(input_file: str, output_prefix: str, intervals: List[Tuple[int, int]], logger: logging.Logger) -> List[str]:
-    """
-    Split a media file according to given time intervals.
-    
-    Args:
-        input_file: Path to input media file
-        output_prefix: Prefix for output files
-        intervals: List of (start_time, end_time) in milliseconds
-        logger: Logger instance
-    
-    Returns:
-        List of generated output file paths
-    """
+def split_media(input_file: str, output_prefix: str, intervals: List[Tuple[int, int]]) -> List[str]:
     output_files = []
     
     for idx, (start_ms, end_ms) in enumerate(intervals):
-        # Convert milliseconds to seconds
         start_sec = start_ms / 1000
         duration_sec = (end_ms - start_ms) / 1000
         
@@ -59,7 +45,7 @@ def create_concat_file(file_list: List[str], concat_file: str):
         for file_path in file_list:
             f.write(f"file '{os.path.abspath(file_path)}'\n")
 
-def merge_media_files(file_list: List[str], output_file: str, logger: logging.Logger):
+def merge_media_files(file_list: List[str], output_file: str):
     """
     Merge multiple media files into a single file using the concat demuxer
     """
@@ -82,7 +68,7 @@ def merge_media_files(file_list: List[str], output_file: str, logger: logging.Lo
         if os.path.exists(concat_file):
             os.remove(concat_file)
 
-def process_media_files(video_file: str, intervals: List[Tuple[int, int]], 
+def clip_video(video_file: str, intervals: List[Tuple[int, int]], 
                        output_video: str):
     """
     Main function to process video and audio files
@@ -93,12 +79,12 @@ def process_media_files(video_file: str, intervals: List[Tuple[int, int]],
     try:
         # Split video
         logger.info("Processing video segments...")
-        video_segments = split_media(video_file, "temp_video", intervals, logger)
+        video_segments = split_media(video_file, "temp_video", intervals)
         print("Split videos - \n", video_segments)
         
         # Merge video segments
         logger.info("Merging video segments...")
-        merge_media_files(video_segments, output_video, logger)
+        merge_media_files(video_segments, output_video)
 
         # Clean up temporary files
         for file in video_segments:
@@ -113,54 +99,9 @@ def process_media_files(video_file: str, intervals: List[Tuple[int, int]],
 
 def get_intervals(file_name:str):
     timestamps = []
-    with open(file_name, newline='') as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader:
-            if(row[1].isalpha()):
-                continue
-            timestamps.append((float(row[1]), float(row[2])))
-    print("timestamps: ", timestamps)
+
+    subtitle_rows = CSVUtils.get_subtitles_as_dict(file_name)
+    timestamps =[
+        (row["startMs"], row["endMs"]) for row in subtitle_rows
+    ]
     return timestamps
-
-def offset_csv_file_timestamps(csv_file:str):
-    new_csv_file = csv_file.split(".csv")[0] + "_offsetted.csv"
-    with open(new_csv_file, "w", newline='', encoding="utf-8") as dest_csv_file:
-        with open(csv_file, "r") as src_csv_file:
-            reader = csv.DictReader(src_csv_file)
-            field_names = reader.fieldnames
-            
-            rows = []
-            for r in reader:
-                rows.append(r)
-                r.update({
-                    "startMs": int(r["startMs"]),
-                    "endMs": int(r["endMs"])
-                })
-            rows.sort(key=lambda x: (x["startMs"], x["endMs"]))
-
-            diff = rows[0]["startMs"]
-
-            rows[0]["startMs"] -= diff
-            rows[0]["endMs"] -= diff
-
-            for i in range(1, len(rows)):
-                if(rows[i]["startMs"] <= diff + rows[i-1]["endMs"]):
-                    rows[i]["startMs"] -= diff
-                    rows[i]["endMs"] -= diff
-                else:
-                    temp = rows[i]["endMs"] - rows[i]["startMs"]
-                    temp2 = rows[i]["startMs"] - rows[i-1]["endMs"]
-
-                    rows[i]["startMs"] = rows[i-1]["endMs"]
-                    rows[i]["endMs"] = rows[i]["startMs"] + temp
-
-                    diff = temp2
-
-            writer = csv.DictWriter(dest_csv_file, fieldnames=field_names)
-            writer.writeheader()
-            for r in rows:
-                writer.writerow(r)
-            dest_csv_file.close()
-        src_csv_file.close()
-    
-    return new_csv_file

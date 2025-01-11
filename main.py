@@ -1,8 +1,9 @@
 import asyncio
+from csv_utils import CSVUtils
 from make_shorts import Subtitles, VideoEditor
-from clip_new import get_intervals, offset_csv_file_timestamps, process_media_files
+from clip_new import get_intervals, clip_video
 from llm import LLM
-from utils.utils import merge_intervals
+from utils import merge_intervals
 from yt_utils import VideoTools
 
 async def perform_work(video_urls: list[str]):
@@ -22,11 +23,10 @@ async def perform_work(video_urls: list[str]):
             reduced_subtitles_path = LLM.generate_script_gemini(video_dir, subtitles_path)
 
             output_video_path = video_dir + "/final_video.mp4"
-
             intervals = merge_intervals(get_intervals(reduced_subtitles_path))
-            process_media_files(video_path, intervals, output_video_path)
-
-            offsetted_subtitles = offset_csv_file_timestamps(reduced_subtitles_path)
+            clip_video(video_path, intervals, output_video_path)
+            return
+            offsetted_subtitles = CSVUtils.offset_csv_file_timestamps(reduced_subtitles_path)
             final_video_path = video_dir+"/final_video_subbed.mp4"
             
             editor = VideoEditor(video_dir, output_video_path, output_path=final_video_path, subtitles=Subtitles(offsetted_subtitles))
