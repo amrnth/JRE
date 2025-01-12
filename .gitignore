@@ -23,3 +23,8 @@ fonts
 
 trash
 trash/*
+
+news_shorts/temp_frames/*
+
+*.mp4
+*.mp3
