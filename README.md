@@ -24,6 +24,7 @@ Immediate tasks:
 
 TODO - 15/1-19/1
 - [ ] make prompts better, currently stories aren't that great.
+    - [x] claude returns good results but is costly. 
 - [x] zoom a bit
 - [ ] modify prompt to return title description of the video. save original video metadata
 - [ ] extract subtitles with word-by-word timestamp, and use animation.
