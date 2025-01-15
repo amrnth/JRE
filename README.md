@@ -22,6 +22,15 @@ Immediate tasks:
     2. Split and combine 
 3. Automate using AI
 
+TODO - 15/1-19/1
+- [ ] make prompts better, currently stories aren't that great.
+- [x] zoom a bit
+- [ ] modify prompt to return title description of the video. save original video metadata
+- [ ] extract subtitles with word-by-word timestamp, and use animation.
+    - [ ] host whisper on GCP
+- [ ] Add effects to subtitles, spread words across the whole timestamp
+- [ ] Host on GCP - perpetual
+
 TODO - 4/1
 - [x] Split and combine video and audio
 - [x] Publish to Youtube Channel
@@ -31,11 +40,7 @@ TODO - 4/1
 - [x] handle the case of combining audio after merging frames
 - [x] short video aspect ratio
     - [ ] focus on speaker
-- [ ] make prompts better, currently stories aren't that great.
-- [ ] make code modular - use classes ffs!!!
-- [ ] modify prompt to return title description of the video. save original video metadata
-- [ ] extract subtitles with word-by-word timestamp, and use animation.
+- [x] make code modular - use classes ffs!!!
 - [x] Make subtitles bigger, and appear on multiple lines if long
-- [ ] Add effects to subtitles, spread words across the whole timestamp
 - [x] Make code run on multiple processors - done(beautiful work!)
 - [ ] Add zoom-in, zoom-out etc features when transitioning between speakers

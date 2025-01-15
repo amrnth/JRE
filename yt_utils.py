@@ -25,7 +25,7 @@ class VideoTools:
     @staticmethod
     def get_slug_from_yt_video_url(full_url: str):
         is_short = False
-        if(full_url.index("shorts") != -1):
+        if(full_url.find("shorts") != -1):
             is_short = True
 
         parsed_url = urlparse(full_url)
@@ -51,6 +51,12 @@ class VideoTools:
             'quiet': False,
             'no_warnings': False,
             'ignoreerrors': False,
+            'no_cache': True,
+
+            'cookiefile': 'cookies.txt',  # Add your YouTube cookies
+            'sleep_interval': 1,  # Add delay between requests
+            'max_sleep_interval': 5,
+            'external_downloader_args': ['--max-download-rate', '2M'],  # 
         }
         
         try:

@@ -1,0 +1,12 @@
+{
+  "contents": [
+    {
+      "text": "The Indian Council of Medical Research (ICMR) has confirmed two cases of Human Metapneumovirus (HMPV) in Bengaluru. The affected individuals are infants, one aged three months and the other eight months. These cases were detected during routine surveillance of respiratory viruses. The Health Ministry assures that India is prepared to handle respiratory illnesses, with no unusual surge reported.",
+       "image": "https://images.moneycontrol.com/static-mcnews/2025/01/20250106062053_ICMR.jpg"
+    },
+    {
+      "text": "HMPV is similar to the common cold, affecting children and the elderly more severely. It spreads easily through contact and surfaces. The symptoms include cough, fever, and nasal congestion. Health officials are advising people to maintain respiratory hygiene and self-isolate in case of infection to prevent spread.",
+        "image": "https://images.moneycontrol.com/static-mcnews/2025/01/20250106062053_ICMR.jpg"
+    }
+  ]
+}

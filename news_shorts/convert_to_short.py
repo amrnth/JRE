@@ -53,7 +53,7 @@ def create_frame(image_path, text, current_frame, total_frames, width=1080, heig
     img_w, img_h = bg_image.size
     bg_image = bg_image.resize((width, int(img_h*width/img_w)), Image.Resampling.LANCZOS)
     frame.paste(bg_image, (0, 0))
-    
+
     # Add text at bottom
     draw = ImageDraw.Draw(frame)
     font = ImageFont.truetype("fonts/Times-New-Roman/Times New Roman/times new roman.ttf", 64)
@@ -154,8 +154,8 @@ def main():
     # merge_audio_files("news_shorts/")
     summary, timings_df = load_data('news_shorts/summary.json', 'news_shorts/audio_timings.csv')
     print(summary)
-    frame_paths = create_video_segments(summary, timings_df, fps=5)
-    create_final_video(frame_paths, 'news_shorts/audio.m4a', 'news_shorts/final_video.mp4', fps=5)
+    frame_paths = create_video_segments(summary, timings_df, fps=28)
+    create_final_video(frame_paths, 'news_shorts/audio.m4a', 'news_shorts/final_video.mp4', fps=28)
 
 if __name__ == "__main__":
     main()

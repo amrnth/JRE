@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import os
 import multiprocessing
 import psutil
+from PIL import Image, ImageFilter, ImageEnhance
 
 def has_cuda_gpu():
    return cv2.cuda.getCudaEnabledDeviceCount()
@@ -32,10 +33,8 @@ def check_free_cores():
         'cpu_usage': cpu_usage
     })
 
-from PIL import Image, ImageFilter, ImageEnhance
-
 class FrameProcessor:
-    def __init__(self, target_size=(1080, 1920)):
+    def __init__(self, target_size=(1080, 1920), sample_frame="data_dump/frames/frame0808.png"):
         self.target_size = target_size
         self.enhancements = {
             'blur': ImageFilter.GaussianBlur,
@@ -44,6 +43,7 @@ class FrameProcessor:
             'color': ImageEnhance.Color,
             'sharpness': ImageEnhance.Sharpness
         }
+        self.sample_frame =sample_frame
 
     def apply_blur(self, img, radius=10):
         return img.filter(self.enhancements['blur'](radius=radius))
@@ -92,6 +92,8 @@ class FrameProcessor:
         ))
         return enhanced_img
 
+    
+
     def process_frame(self, img: Image.Image, enhancements=None) -> Image.Image:
         original_width, original_height = img.size
         img = img.convert('RGB')
@@ -119,7 +121,7 @@ class FrameProcessor:
         if not os.path.exists('enhancement_experiments'):
             os.makedirs('enhancement_experiments')
 
-        img = Image.open("data_dump/frames/frame0808.png")
+        img = Image.open(self.sample_frame)
         
         # Define enhancement types and their ranges
         enhancements = {
@@ -161,7 +163,7 @@ class FrameProcessor:
         if not os.path.exists('enhancement_experiments'):
             os.makedirs('enhancement_experiments')
 
-        img = Image.open("data_dump/frames/frame0808.png")
+        img = Image.open(self.sample_frame)
         blur_values = [30, 40, 50]
         brightness_values = [0.3, 0.4, 0.5, 0.6]
 
@@ -193,6 +195,42 @@ class FrameProcessor:
         plt.savefig('enhancement_experiments/blur_brightness_grid.png',
                     bbox_inches='tight', pad_inches=0.3, dpi=100)
         plt.close()
+
+    def create_zoom_grid(self):
+        w_bg, h_bg = self.target_size
+        bg = Image.new("RGB", (w_bg, h_bg), color = "red")
+
+        img = Image.open(self.sample_frame)
+        
+        fig_height = 2*1920/100
+        fig_width = 3*1080/100
+        fig = plt.figure(figsize=(fig_width, fig_height))
+
+        for i in range(6):
+            img_copy = img.copy()
+            w, h = img_copy.size
+            zoom_factor = 1 + i*0.2
+            w1, h1 = int(zoom_factor * w), int(zoom_factor * h)
+            img_copy = img_copy.resize((w1, h1), Image.LANCZOS)
+
+            img_copy = img_copy.crop(((w1-w_bg)//2, 0, (w1+w_bg)//2, h1))
+
+            bg.paste(img_copy, (0, (h_bg - h1)//2))
+
+            ax = plt.subplot(2, 3, i+1)
+            plt.imshow(bg)
+            plt.axis("off")
+            plt.title(f"factor: {zoom_factor}", fontdict={
+                "fontsize": 40
+            })
+
+            ax.set_aspect("equal")
+        
+        plt.subplots_adjust(wspace=0.05)
+        plt.suptitle("Zoom test")
+        plt.savefig("enhancement_experiments/zoom.png", bbox_inches='tight', pad_inches=0.3, dpi=100)
+
+
 from PIL import Image, ImageDraw, ImageFont
 import os
 
@@ -377,11 +415,19 @@ class ImageFilterExperimentation:
         plt.savefig('filter_comparison.png')
         plt.close()
     
-
-
     def run_expt():
         processor = ImageFilterExperimentation()
         processor.create_grid()
+
+def temp():
+    for dir in os.listdir("processed_data"):
+        print("\"https://youtube.com/watch?v=", dir, "\",", sep="")
+        # for file in os.listdir("processed_data/"+dir):
+        #     if(file=="final_video_subbed.mp4"):
+        #         path = os.path.join("processed_data", dir, "final_video_subbed.mp4")
+
+        #         new_path = os.path.join("processed_data", dir, "final_video_subbed_1.mp4")
+        #         os.rename(path, new_path)
 
 
 # Example usage:
@@ -394,7 +440,9 @@ if __name__ == "__main__":
     # new_img = process_frame(img)
     # new_img.save("frame_processing_test.png")
     # ImageFilterExperimentation.run_expt()
-    fp = FrameProcessor()
+    # fp = FrameProcessor()
+    # fp.create_zoom_grid()
     # fp.create_enhancement_experiments()
     # fp.create_blur_brightness_grid()
-    print(check_free_cores())
+    # print(check_free_cores())
+    temp()

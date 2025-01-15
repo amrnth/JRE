@@ -9,8 +9,6 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import multiprocessing as mp
 from functools import partial
 
-from test import check_free_cores
-
 @dataclass
 class SubtitleEntry:
     text: str
@@ -54,6 +52,7 @@ class VideoEditor:
         self.brightness_factor = 0.4
         self.shadow_offset = (5, 5)
         self.explosion_factor = 2
+        self.zoom_factor = 1.9
         
         # Create temp directory if it doesn't exist
         os.makedirs(self.temp_dir, exist_ok=True)
@@ -114,16 +113,17 @@ class VideoEditor:
 
         # Resize original frame to fit within target width
         scale_factor = 1080 / original_width
-        new_width = 1080
-        new_height = int(original_height * scale_factor)
+        new_width =int( 1080 * self.zoom_factor)
+        new_height = int(original_height * scale_factor * self.zoom_factor)
         resized_img = img.resize((new_width, new_height), Image.LANCZOS)
+
+        if(self.zoom_factor != 1):
+            resized_img = resized_img.crop(((new_width - 1080)//2, 0, (new_width+1080)//2, new_height))
 
         paste_y = (1920 - new_height) // 2
 
         image.paste(resized_img, (0, paste_y))
 
-        image.save("testtest.png")
-            
         draw = ImageDraw.Draw(image)
         
         resized_img_w = 1080
@@ -189,6 +189,7 @@ class VideoEditor:
         if(os.path.exists(self.output_path)):
             return self.output_path
         try:
+            print("Processing ", self.output_path)
             print("Extracting and processing frames...")
             frame_count, fps = self._extract_frames()
             

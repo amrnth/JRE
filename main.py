@@ -25,19 +25,33 @@ async def perform_work(video_urls: list[str]):
             output_video_path = video_dir + "/final_video.mp4"
             intervals = merge_intervals(get_intervals(reduced_subtitles_path))
             clip_video(video_path, intervals, output_video_path)
-            return
             offsetted_subtitles = CSVUtils.offset_csv_file_timestamps(reduced_subtitles_path)
             final_video_path = video_dir+"/final_video_subbed.mp4"
             
             editor = VideoEditor(video_dir, output_video_path, output_path=final_video_path, subtitles=Subtitles(offsetted_subtitles))
             editor.process_video()
         except Exception as e:
-            print(f"error processing {url}: {str(e)}")
+            print(f"error processing {url}: ", e)
             continue
 
 if __name__ == "__main__":
     yt_video_urls = [
-        "https://www.youtube.com/shorts/9cjffFvPIrU"
+        "https://youtube.com/watch?v=37KieyXOYG4",
+        # "https://youtube.com/watch?v=8kJacGNg_9w",
+        # "https://youtube.com/watch?v=af_BsEH5qFk",
+        # "https://youtube.com/watch?v=bklrNzdtU3Q",
+        # "https://youtube.com/watch?v=CO5E-VoR3sA",
+        # "https://youtube.com/watch?v=DEsCPOdPTM4",
+        # "https://youtube.com/watch?v=FozCkl1xj-w",
+        "https://youtube.com/watch?v=FRrbjiOs4no",
+        # "https://youtube.com/watch?v=ImCCNtdXwdo",
+        # "https://youtube.com/watch?v=kJcpTSNWXdQ",
+        # "https://youtube.com/watch?v=kxBSuwRXynE",
+        # "https://youtube.com/watch?v=mwahLAUzf1s",
+        # "https://youtube.com/watch?v=M_jPqv3NvUI",
+        # "https://youtube.com/watch?v=p3QMDSJJSks",
+        # "https://youtube.com/watch?v=pTBIR4kzamY",
+        # "https://youtube.com/watch?v=tSoe5v5Qlec",
         ]
     asyncio.run(perform_work(yt_video_urls))
     # download_save_video_info(yt_video_urls)

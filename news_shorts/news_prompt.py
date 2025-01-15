@@ -8,7 +8,7 @@ def generate_summary_from_prompt():
     
 
     prompt = """
-    Given the following is the data about a news article. Read through it and generate a 100 word summary of the news. 
+    Given the following is the data about a news article. Read through it and generate a 60-words(max. 4 sentences) word summary of the news. 
     
     I aim to convert the summary into a video which looks like this:
     There will one paragraph in the summary with a background image. The background image should be chosen from one of the supplied images. You need to take into consideration the `label` and `image_contents` of the images in order to decide which image to use. Make sure to follow the following rule of number of images when considering the number of parts of the summary: 
