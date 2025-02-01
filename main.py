@@ -36,23 +36,20 @@ async def perform_work(video_urls: list[str]):
 
 if __name__ == "__main__":
     yt_video_urls = [
-        "https://youtube.com/watch?v=37KieyXOYG4",
+        # "https://youtube.com/watch?v=37KieyXOYG4",
         # "https://youtube.com/watch?v=8kJacGNg_9w",
         # "https://youtube.com/watch?v=af_BsEH5qFk",
-        "https://youtube.com/watch?v=bklrNzdtU3Q",
+        # "https://youtube.com/watch?v=bklrNzdtU3Q",
         # "https://youtube.com/watch?v=CO5E-VoR3sA",
         # "https://youtube.com/watch?v=DEsCPOdPTM4",
         # "https://youtube.com/watch?v=FozCkl1xj-w",
-        "https://youtube.com/watch?v=FRrbjiOs4no",
-        # "https://youtube.com/watch?v=bEWdAYvANcc",
-        # "https://youtube.com/watch?v=ImCCNtdXwdo",
-        # "https://youtube.com/watch?v=kJcpTSNWXdQ",
-        # "https://youtube.com/watch?v=kxBSuwRXynE",
-        # "https://youtube.com/watch?v=mwahLAUzf1s",
-        # "https://youtube.com/watch?v=M_jPqv3NvUI",
-        # "https://youtube.com/watch?v=p3QMDSJJSks",
-        # "https://youtube.com/watch?v=pTBIR4kzamY",
-        # "https://youtube.com/watch?v=tSoe5v5Qlec",
+        # "https://www.youtube.com/watch?v=Zy71pfPreuU",
+        # "https://www.youtube.com/watch?v=kMD7K-kTKvg",
+        # "https://www.youtube.com/watch?v=kJjgr0So7ek",
+        # "https://www.youtube.com/watch?v=18vrb7i8dX0&t=6s",
+        # "https://www.youtube.com/watch?v=GfWrvaibYnM",
+        # "https://www.youtube.com/watch?v=GNG6ZzDh9C8",
+        "https://www.youtube.com/watch?v=i2RCpvil-fs&pp=ygUHanJlIDMzOA%3D%3D",
         ]
     asyncio.run(perform_work(yt_video_urls))
     # download_save_video_info(yt_video_urls)
